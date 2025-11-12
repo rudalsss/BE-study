@@ -20,6 +20,7 @@ open class CouponService(
 
     @Transactional
     open fun issueCoupon(userId: Long, inventoryId: Long): UserCoupon {
+
         logger.info("쿠폰 발급 요청: userId=$userId, inventoryId=$inventoryId")
         // 해당 유저의 쿠폰존재 확인 -> 있다면 반환
         val existingUserCoupon = userCouponRepository.findByUserId(userId)
@@ -29,15 +30,16 @@ open class CouponService(
         }
 
         // 쿠폰 인벤토리 확인
-        val couponInventory = couponInventoryRepository.findById(inventoryId)
+        val couponInventory = couponInventoryRepository.findForUpdate(inventoryId)
             .orElseThrow{
                 logger.info("해당 쿠폰 인벤토리($inventoryId)를 찾을 수 없습니다.")
                 throw ResponseStatusException(HttpStatus.NOT_FOUND, "해당 쿠폰 인벤토리를 찾을 수 없습니다.")
             }
+
         // 재고확인
         if( !validateCoupounInventory(couponInventory) ){
             logger.error("쿠폰 재고가 모두 소진되었습니다. inventoryId=$inventoryId")
-           throw ResponseStatusException(HttpStatus.NOT_FOUND, "쿠폰재고가 모두 소진되었습니다.")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "쿠폰재고가 모두 소진되었습니다.")
         }
 
         // 쿠폰코드 생성
