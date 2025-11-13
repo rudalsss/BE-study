@@ -8,6 +8,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
+import jakarta.persistence.Version
 import java.time.LocalDateTime
 
 @Entity
@@ -32,5 +33,9 @@ data class CouponInventory(
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
+
+    @Version
+    @Column(name = "version", nullable = false)
+    var version: Long = 0 // 버전 필드
 )

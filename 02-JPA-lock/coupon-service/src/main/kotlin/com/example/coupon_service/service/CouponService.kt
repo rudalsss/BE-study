@@ -4,7 +4,8 @@ import com.example.coupon_service.entity.CouponInventory
 import com.example.coupon_service.entity.UserCoupon
 import com.example.coupon_service.repository.CouponInventoryRepository
 import com.example.coupon_service.repository.UserCouponRepository
-import jakarta.transaction.Transactional
+import jakarta.persistence.OptimisticLockException
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -21,41 +22,47 @@ open class CouponService(
     @Transactional
     open fun issueCoupon(userId: Long, inventoryId: Long): UserCoupon {
         logger.info("쿠폰 발급 요청: userId=$userId, inventoryId=$inventoryId")
-        // 해당 유저의 쿠폰존재 확인 -> 있다면 반환
-        val existingUserCoupon = userCouponRepository.findByUserId(userId)
-        if (existingUserCoupon!= null) {
-            logger.info("유저 ($userId)는 이미 쿠폰을 발급받았습니다.")
-            return existingUserCoupon
-        }
 
-        // 쿠폰 인벤토리 확인
-        val couponInventory = couponInventoryRepository.findById(inventoryId)
-            .orElseThrow{
-                logger.info("해당 쿠폰 인벤토리($inventoryId)를 찾을 수 없습니다.")
-                throw ResponseStatusException(HttpStatus.NOT_FOUND, "해당 쿠폰 인벤토리를 찾을 수 없습니다.")
+        try{
+            // 해당 유저의 쿠폰존재 확인 -> 있다면 반환
+            val existingUserCoupon = userCouponRepository.findByUserId(userId)
+            if (existingUserCoupon!= null) {
+                logger.info("유저 ($userId)는 이미 쿠폰을 발급받았습니다.")
+                return existingUserCoupon
             }
-        // 재고확인
-        if( !validateCoupounInventory(couponInventory) ){
-            logger.error("쿠폰 재고가 모두 소진되었습니다. inventoryId=$inventoryId")
-           throw ResponseStatusException(HttpStatus.NOT_FOUND, "쿠폰재고가 모두 소진되었습니다.")
+
+            // 쿠폰 인벤토리 확인
+            val couponInventory = couponInventoryRepository.findById(inventoryId)
+                .orElseThrow{
+                    logger.info("해당 쿠폰 인벤토리($inventoryId)를 찾을 수 없습니다.")
+                    throw ResponseStatusException(HttpStatus.NOT_FOUND, "해당 쿠폰 인벤토리를 찾을 수 없습니다.")
+                }
+            // 재고확인
+            if( !validateCoupounInventory(couponInventory) ){
+                logger.error("쿠폰 재고가 모두 소진되었습니다. inventoryId=$inventoryId")
+                throw ResponseStatusException(HttpStatus.NOT_FOUND, "쿠폰재고가 모두 소진되었습니다.")
+            }
+
+            // 쿠폰 재고증가
+            couponInventory.assignedCouponCount++
+            couponInventoryRepository.flush()
+
+            // 쿠폰코드 생성
+            val couponCode = generateValidCouponCode()
+            // 쿠폰 발급
+            val userCoupon = UserCoupon(
+                userId = userId,
+                inventoryId = inventoryId,
+                couponCode = couponCode
+            )
+
+            // 유저 쿠폰 저장
+            logger.info("유저 $userId 의 쿠폰이 성공적으로 발급되었습니다.")
+            return userCouponRepository.save(userCoupon)
+        } catch (e: OptimisticLockException) {
+            // 버전 충돌 처리
+            throw ResponseStatusException(HttpStatus.CONFLICT, "버전 충돌이 발생했습니다. 다시 시도해주세요.")
         }
-
-        // 쿠폰코드 생성
-        val couponCode = generateValidCouponCode()
-        // 쿠폰 발급
-        val userCoupon = UserCoupon(
-            userId = userId,
-            inventoryId = inventoryId,
-            couponCode = couponCode
-        )
-
-        // 쿠폰 재고증가
-        couponInventory.assignedCouponCount++
-        couponInventoryRepository.save(couponInventory)
-
-        // 유저 쿠폰 저장
-        logger.info("유저 $userId 의 쿠폰이 성공적으로 발급되었습니다.")
-        return userCouponRepository.save(userCoupon)
     }
 
     private fun validateCoupounInventory(couponInventory: CouponInventory): Boolean{
