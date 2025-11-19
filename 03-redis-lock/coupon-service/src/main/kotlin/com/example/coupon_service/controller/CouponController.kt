@@ -1,6 +1,6 @@
 package com.example.coupon_service.controller
 
-import com.example.coupon_service.ApiResponse
+import com.example.coupon_service.com.example.coupon_service.ApiResponse
 import com.example.coupon_service.entity.Coupon
 import com.example.coupon_service.service.CouponService
 import org.springframework.web.bind.annotation.PathVariable
