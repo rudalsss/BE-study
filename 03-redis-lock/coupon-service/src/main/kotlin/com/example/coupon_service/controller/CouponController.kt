@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/coupons")
-class CouponControlle(
+class CouponController(
     private val couponService: CouponService
 ) {
-    // 쿠폰발급
+    // 쿠폰추가
     @PostMapping("/add")
     fun addCoupons(@RequestBody request: AddCouponsRequest): ApiResponse<Boolean> {
         couponService.addCoupons(request.couponCodes)

@@ -9,9 +9,9 @@ class CouponService(
     private val couponRepository: CouponRepository
 ) {
     fun addCoupons(couponCodes: List<String>) {
-        for( code in couponCodes ) {
-            val coupon = Coupon(code = code)
-            couponRepository.save(coupon)
+        for (code in couponCodes) {
+            if (couponRepository.existsByCode(code)) throw IllegalArgumentException("중복된 코드입니다")
+            couponRepository.save(Coupon(code = code))
         }
     }
 
@@ -34,8 +34,12 @@ class CouponService(
         couponRepository.saveAll(coupons)
     }
 
+    fun findAllCodes(): List<String> {
+        return couponRepository.findAll().map { it.code }
+    }
+
     // 랜덤 10자리 쿠폰코드 생성 + DB중복검증
-    private fun generateValidCouponCode(): String {
+    fun generateValidCouponCode(): String {
         val characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         var couponCode: String
 
