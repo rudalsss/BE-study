@@ -16,15 +16,8 @@ class CouponIssueController(
 ) {
     // 쿠폰발급
     @PostMapping("/{userId}/issue")
-    fun issueCoupon(@PathVariable userId: Long): ApiResponse<Coupon> {
+    fun issueCoupon(@PathVariable userId: Long): ApiResponse<Coupon?> {
         val coupon = couponIssueService.issueCoupon(userId)
         return ApiResponse.success(coupon)
-    }
-
-    // 발급받은 쿠폰 조회
-    @GetMapping("/{userId}")
-    fun getUserCoupon(@PathVariable userId: Long): ApiResponse<String> {
-        val userCoupon = couponIssueService.findUserCouponByUserId(userId)
-        return ApiResponse.success(userCoupon);
     }
 }
