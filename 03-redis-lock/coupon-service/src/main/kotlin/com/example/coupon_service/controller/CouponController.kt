@@ -1,7 +1,7 @@
 package com.example.coupon_service.controller
 
-import com.example.coupon_service.com.example.coupon_service.ApiResponse
-import com.example.coupon_service.entity.Coupon
+import com.example.coupon_service.ApiResponse
+import com.example.coupon_service.repository.CouponRepository
 import com.example.coupon_service.service.CouponService
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 class CouponController(
     private val couponService: CouponService
 ) {
-    // 쿠폰추가
+    // 단건, 복수 쿠폰추가
     @PostMapping("/add")
     fun addCoupons(@RequestBody request: AddCouponsRequest): ApiResponse<Boolean> {
         couponService.addCoupons(request.couponCodes)
@@ -37,6 +37,7 @@ class CouponController(
     @PostMapping("/generate")
     fun generate() : ApiResponse<Boolean> {
         couponService.generateInitialCoupons(1000)
+        couponService.pushAllToCouponRedis()
         return ApiResponse.success(true)
     }
 

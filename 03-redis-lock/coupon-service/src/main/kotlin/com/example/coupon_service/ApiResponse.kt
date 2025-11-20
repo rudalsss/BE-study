@@ -1,4 +1,4 @@
-package com.example.coupon_service.com.example.coupon_service
+package com.example.coupon_service
 
 class ApiResponse<T>(
     val success: Boolean,
