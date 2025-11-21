@@ -36,7 +36,7 @@ class CouponController(
     @PostMapping("/generate")
     fun generate() : ApiResponse<Boolean> {
         couponService.generateInitialCoupons(1000)
-        couponService.pushAllToCouponRedis() // 쿠폰재고 레디스에 전부 추가
+        couponService.pushAllToCouponRedis()
         return ApiResponse.success(true)
     }
 

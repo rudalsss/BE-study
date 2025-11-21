@@ -17,7 +17,7 @@ class CouponService(
     fun addCoupons(couponCodes: List<String>) {
         for (code in couponCodes) {
             if (couponRepository.existsByCode(code)) {
-                throw IllegalArgumentException("중복된 코드입니다")
+                throw IllegalArgumentException("이미 존재하는 쿠폰코드입니다")
             }
         }
         couponRepository.saveAll(couponCodes.map { Coupon(code = it) })
@@ -40,8 +40,14 @@ class CouponService(
 
     @Transactional
     fun generateInitialCoupons(count: Int) {
-        val codes = (1..count).map { generateValidCouponCode() }
+        val characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+
+        fun randomCode(): String =
+            (1..10).map { characters.random() }.joinToString("")
+
+        val codes = (1..count).map { randomCode() }
         val coupons = codes.map { Coupon(code = it) }
+
         couponRepository.saveAll(coupons)
     }
 
