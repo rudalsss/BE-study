@@ -17,11 +17,10 @@ class CouponService(
     fun addCoupons(couponCodes: List<String>) {
         for (code in couponCodes) {
             if (couponRepository.existsByCode(code)) {
-                throw IllegalArgumentException("중복된 코드입니다")
+                throw IllegalArgumentException("이미 존재하는 쿠폰코드입니다")
             }
         }
         couponRepository.saveAll(couponCodes.map { Coupon(code = it) })
-        redisTemplate.opsForList().rightPushAll(INVENTORY_KEY, couponCodes)
     }
 
     @Transactional
