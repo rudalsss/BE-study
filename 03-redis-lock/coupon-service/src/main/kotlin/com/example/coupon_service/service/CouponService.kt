@@ -17,10 +17,11 @@ class CouponService(
     fun addCoupons(couponCodes: List<String>) {
         for (code in couponCodes) {
             if (couponRepository.existsByCode(code)) {
-                throw IllegalArgumentException("이미 존재하는 쿠폰코드입니다")
+                throw IllegalArgumentException("중복된 코드입니다")
             }
         }
         couponRepository.saveAll(couponCodes.map { Coupon(code = it) })
+        redisTemplate.opsForList().rightPushAll(INVENTORY_KEY, couponCodes)
     }
 
     @Transactional
@@ -45,7 +46,7 @@ class CouponService(
     }
 
     // 랜덤 10자리 쿠폰코드 생성 + DB중복검증
-    fun generateValidCouponCode(): String {
+    private fun generateValidCouponCode(): String {
         val characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         var couponCode: String
 
