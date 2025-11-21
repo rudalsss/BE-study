@@ -1,4 +1,4 @@
-# 🚀 Coupon Issuance Concurrency Control (Pessimistic Lock vs Optimistic Lock)
+# 🚀 쿠폰발급시스템 : 동시성 관리 (DB Pessimistic Lock vs Optimistic Lock)
 
 ## 🎯 학습 목표
 - 하나의 리소스(쿠폰)에서 다수의 동시 요청이 발생할 때 정합성 깨짐(Reace Condition) 문제를 이해한다.
